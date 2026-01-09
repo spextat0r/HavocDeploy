@@ -1,5 +1,46 @@
 #!/bin/bash
 
+usage() {
+    echo "Usage: $0 [-m <8-char hex string (a-f, 0-9)>] (if -m is omitted a random value will be used)"
+    exit 1
+}
+
+# Parse options
+while getopts ":m:" opt; do
+    case "$opt" in
+        m)
+            MVAL="$OPTARG"
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+# If -m not provided, generate one
+if [[ -z "$MVAL" ]]; then
+    echo "Generating random magic value"
+
+	rand=$(tr -dc 'a-f0-9' </dev/urandom | head -c 8)
+
+	if [[ $? -ne 0 ]] ; then
+		echo "Generating random value failed"
+		exit 1
+	fi
+
+	echo "Random magic value = 0x$rand"
+else
+	if [[ ! "$MVAL" =~ ^[a-f0-9]{8}$ ]]; then
+		echo "Error: -m must be exactly 8 characters long and contain only a-f and 0-9"
+		exit 1
+	fi
+	rand=$MVAL
+	echo "Static magic set by user magic value = 0x$rand"
+
+fi
+
+
+
 echo "Installing Repos"
 sudo apt update
 sudo apt install -y git build-essential apt-utils cmake libfontconfig1 libglu1-mesa-dev libgtest-dev libspdlog-dev libboost-all-dev libncurses5-dev libgdbm-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev libbz2-dev mesa-common-dev qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libqt5websockets5 libqt5websockets5-dev qtdeclarative5-dev golang-go qtbase5-dev libqt5websockets5-dev python3-dev libboost-all-dev mingw-w64 nasm
@@ -87,16 +128,6 @@ clean: ts-cleanup client-cleanup
 EOF
 
 
-echo "Generating random magic value"
-
-rand=$(tr -dc 'a-f0-9' </dev/urandom | head -c 8)
-
-if [[ $? -ne 0 ]] ; then
-    echo "Generating random value failed"
-    exit 1
-fi
-
-echo "Random magic value = 0x$rand"
 
 
 makefiledata_replaced="${makefiledata//REPLACEME/$rand}"
