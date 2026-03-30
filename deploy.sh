@@ -134,4 +134,9 @@ makefiledata_replaced="${makefiledata//REPLACEME/$rand}"
 
 echo -e "$makefiledata_replaced" > makefile
 
+echo "Starting build."
+
 sudo make all
+
+echo "Build complete."
+echo -e "Magic value: 0x$rand" > magicvalue
